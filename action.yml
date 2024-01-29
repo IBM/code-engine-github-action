@@ -1,0 +1,159 @@
+name: Code Engine GitHub Action
+description: Github action to interact with IBM Cloud Code Engine deploy Apps, Jobs and Functions
+author: IBM
+
+branding:
+  icon: cloud
+  color: blue
+
+inputs:
+  api-key:
+    description: IAM API Key used to log into the IBM Cloud
+    required: true
+
+  resource-group:
+    description: An IBM Cloud Resource Group is a logical container used to organize and manage related cloud resources
+    required: false
+    default: Default
+
+  region:
+    description: The Region refers to a geographical area where the project is are located
+    required: true
+
+  project:
+    description: A Code Engine Project Is the grouping of your Apps, Functions and Jobs
+    required: true
+
+# App, Function or Job Specific inputs
+  entity:
+    description: The type of entity that should be deployed [App, Function, Job]
+    required: true
+
+  name: 
+    description: Name of the App, Function or Job
+    required: true
+  
+  runtime:
+    description: Runtime used for the Function only required for function
+    required: false
+
+  build-source:
+    description: path to the directory containing the source code 
+    required: false
+    default: .
+
+  cpu:
+    description: CPU configuration set for the entity. If not set default Code Engine values are used. 
+    required: false
+
+  memory:
+    description: Memory configuration set for the entity. If not set default Code Engine values are used.
+    required: false
+
+# actual action code 
+runs:
+  using: composite
+
+  steps:
+    # Default steps required
+    - name: Install IBM Cloud CLI
+      shell: bash
+      run: curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+    
+    - name: Login to IBM Cloud And target Resouce Groupe and Region
+      shell: bash
+      run: ibmcloud login --apikey ${{ inputs.api-key }} -r ${{ inputs.region }} -g ${{ inputs.resource-group }}
+
+    - name: Install Code Engine Plugin
+      shell: bash
+      run: ibmcloud plugin install code-engine
+
+    # Select the project using Name or ID
+    # If the project doesn`t exist the project is created with the provided Name
+    - name: Select Code Engine Project
+      shell: bash
+      run: | 
+        if ibmcloud ce project select --name ${{ inputs.project }} || ibmcloud ce project select --id ${{ inputs.project }} ; then
+          echo "Project Selected"
+        else
+          ibmcloud ce project create --name ${{ inputs.project }}
+        fi
+
+    # set resources for target
+    - name: Set resources
+      id: set-resources
+      shell: bash
+      run: |
+        # set the CPU value
+        if [[ "${{ inputs.cpu }}" != "" ]] ; then
+          echo "cpu=--cpu ${{ inputs.cpu }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "cpu=" >> "$GITHUB_OUTPUT"
+        fi
+        
+        # set the memory value
+        if [[ "${{ inputs.memory }}" != "" ]] ; then
+          echo "memory=--memory ${{ inputs.memory }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "memory=" >> "$GITHUB_OUTPUT"
+        fi
+
+    # Functions Steps
+    - name: Create or Update Functions
+      shell: bash
+      id: fn-create
+      if: ( inputs.entity == 'function' || inputs.entity == 'func' || inputs.entity == 'fn' ) 
+      run: |
+
+        if ibmcloud ce fn get --name ${{ inputs.name }} ; then
+          ibmcloud ce fn update --name ${{ inputs.name }} --runtime ${{ inputs.runtime }} --build-source ${{ inputs.build-source }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+        else
+          ibmcloud ce fn create --name ${{ inputs.name }} --runtime ${{ inputs.runtime }} --build-source ${{ inputs.build-source }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+        fi
+
+    # Application Steps
+    - name: Create or Update Application
+      shell: bash
+      id: create-app
+      if: ( inputs.entity == 'application' || inputs.entity == 'app' ) 
+      run: |
+
+        if ibmcloud ce application get --name ${{ inputs.name }} ; then
+          ibmcloud ce application update --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+        else
+          ibmcloud ce application create --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+        fi
+
+    # Job Steps
+    - name: Create or Update Job
+      shell: bash
+      id: create-job
+      if: inputs.entity == 'job' 
+      run: |
+
+        if ibmcloud ce job get --name ${{ inputs.name }} ; then
+          ibmcloud ce job update --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+        else
+          ibmcloud ce job create --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+        fi
+    
+    - name: Get entity 
+      shell: bash
+      if: steps.fn-create.outcome == 'success' || steps.app-create.outcome == 'success' || steps.job-create.outcome == 'success'
+      run: |
+        case ${{ inputs.entity }} in
+            function|func|fn)
+                ibmcloud ce fn get --name ${{ inputs.name }}
+                ;;
+            application|app)
+                ibmcloud ce app get --name ${{ inputs.name }}
+                ;;
+            job)
+                ibmcloud ce job get --name ${{ inputs.name }}
+                ;;
+            *)
+                echo "Wrong Code Engine Entity used!"
+                echo "Use[ function | func | fn | application | app | job ]"
+                exit 1
+                ;;
+        esac
