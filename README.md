@@ -23,7 +23,7 @@ This GitHub Action allows you to interact with IBM Cloud Code Engine. Deploy App
 
 To use this action, add it to your GitHub Actions workflow YAML file also make sure to add your IBM Cloud API Key as GitHub Action Repository Secret. There is a example for deploying an App, Job and Python/Nodejs Function.
 
-*Deploy an App: `deploy-app.yml`*
+*Deploy an App: `deploy-app.yml`*: Deploy your app to `Default` resource-group in `eu-de` to the project `MY-PROJECT` with its source code in the root of the repository the name of the app is`my-app`.
 ```yaml
 name: Deploy App to Code Engine
 
@@ -49,13 +49,13 @@ jobs:
         region: 'eu-de'
         project: 'MY-PROJECT'
         entity: 'app'
-        name: 'my-qpp'
+        name: 'my-app'
         build-source: './'
         cpu: 1
         memory: 4G
 ```
 
-*Deploy a Job: `deploy-job.yml`*
+*Deploy a Job: `deploy-job.yml`*: Deploy your Job to `Default` resource-group in `eu-de` to the project `MY-PROJECT` with its source code in the root of the repository the name of the job is`my-job`.
 ```yaml
 name: Deploy App to Code Engine
 
@@ -87,7 +87,7 @@ jobs:
         memory: 4G
 ```
 
-*Deploy a NodeJS Function: `deploy-nodejs-func.yml`*
+*Deploy a NodeJS Function: `deploy-nodejs-func.yml`*: Deploy your NodeJS Function to `Default` resource-group in `eu-de` to the project `MY-PROJECT` with its source code in the root of the repository the name of the function is`my-js-fn`.
 ```yaml
 name: Deploy a NodeJS Function to Code Engine
 
@@ -120,7 +120,7 @@ jobs:
         memory: 4G
 ```
 
-*Deploy a Python Function: `deploy-python-func.yml`*
+*Deploy a Python Function: `deploy-python-func.yml`*: Deploy your Python Function to `Default` resource-group in `eu-de` to the project `MY-PROJECT` with its source code in the root of the repository the name of the function is`my-py-fn`.
 ```yaml
 name: Deploy a Python Function to Code Engine
 
