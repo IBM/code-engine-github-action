@@ -8,7 +8,7 @@ This GitHub Action allows you to interact with IBM Cloud Code Engine. Deploy App
 |-----------------|----------|---------------|----------------------------------------------------------------|
 | `api-key`       | ✅      | -             | IAM API Key used to log into the IBM Cloud. Please store your IBM Cloud API key securely in your GitHub repository Secrets.|
 | `resource-group`| ❌       | Default       | An IBM Cloud Resource Group, a logical container for organizing and managing related cloud resources.|
-| `region`        | ✅      | -             | The geographical area where your Code Engine project is located.|
+| `region`        | ✅      | -             | The geographical area where your Code Engine project is located, like `eu-de` |
 | `project`       | ✅      | -             | A Code Engine Project, grouping your Apps, Functions, and Jobs.|
 | `entity`        | ✅      | -             | The type of entity to deploy (App, Function, Job). |
 | `name`          | ✅      | -             | The name of the App, Function, or Job.|
