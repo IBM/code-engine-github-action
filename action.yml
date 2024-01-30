@@ -14,7 +14,6 @@ inputs:
   resource-group:
     description: An IBM Cloud Resource Group is a logical container used to organize and manage related cloud resources
     required: false
-    default: Default
 
   region:
     description: The Region refers to a geographical area where the project is are located
@@ -59,10 +58,20 @@ runs:
     - name: Install IBM Cloud CLI
       shell: bash
       run: curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
-    
+
     - name: Login to IBM Cloud And target Resouce Groupe and Region
       shell: bash
-      run: ibmcloud login --apikey ${{ inputs.api-key }} -r ${{ inputs.region }} -g ${{ inputs.resource-group }}
+      run: |
+        ibmcloud login --apikey ${{ inputs.api-key }} -r ${{ inputs.region }}
+        
+    - name: Set Resource Group
+      shell: bash
+      run: |
+        if [[ "${{ inputs.resource-group }}" != "" ]] ; then
+          ibmcloud target -g ${{ inputs.resource-group }}
+        else
+          ibmcloud target -g $(ibmcloud resource groups --default --output JSON | jq -r '.[0].id')
+        fi
 
     - name: Install Code Engine Plugin
       shell: bash
@@ -73,7 +82,7 @@ runs:
     - name: Select Code Engine Project
       shell: bash
       run: | 
-        if ibmcloud ce project select --name ${{ inputs.project }} || ibmcloud ce project select --id ${{ inputs.project }} ; then
+        if ibmcloud ce project select --name "${{ inputs.project }}" || ibmcloud ce project select --id ${{ inputs.project }} ; then
           echo "Project Selected"
         else
           ibmcloud ce project create --name ${{ inputs.project }}
