@@ -10,7 +10,7 @@ This GitHub Action allows you to interact with IBM Cloud Code Engine. Deploy App
 | `resource-group`| ❌       | Default       | An IBM Cloud Resource Group, a logical container for organizing and managing related cloud resources.|
 | `region`        | ✅      | -             | The geographical area where your Code Engine project is located, like `eu-de` |
 | `project`       | ✅      | -             | The unique identifier (GUID) or the name that identifies your IBM Cloud Code Engine project. |
-| `entity`        | ✅      | -             | The type of entity to deploy (App, Function, Job). |
+| `component`        | ✅      | -             | The type of component to deploy. allowed values `app`, `function`, `job` |
 | `name`          | ✅      | -             | The name of the App, Function, or Job.|
 | `runtime`       | ❌ | -             | The runtime used for the Function. Currently supported `nodejs-18` and `python-3.11` see [IBM Code Engine Function Runtimes](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime) for more information.|
 | `build-source`  | ❌       | .             | Path to the directory containing the source code.|
