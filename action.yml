@@ -111,7 +111,7 @@ runs:
     - name: Create or Update Functions
       shell: bash
       id: fn-create
-      if: ( inputs.entity == 'function' || inputs.entity == 'func' || inputs.entity == 'fn' ) 
+      if: ( inputs.component == 'function' || inputs.component == 'func' || inputs.component == 'fn' ) 
       run: |
 
         if ibmcloud ce fn get --name ${{ inputs.name }} ; then
