@@ -146,7 +146,7 @@ runs:
           ibmcloud ce job create --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
         fi
     
-    - name: Get entity 
+    - name: Get component 
       shell: bash
       if: steps.fn-create.outcome == 'success' || steps.app-create.outcome == 'success' || steps.job-create.outcome == 'success'
       run: |
