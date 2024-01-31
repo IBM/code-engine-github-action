@@ -124,7 +124,7 @@ runs:
     - name: Create or Update Application
       shell: bash
       id: create-app
-      if: ( inputs.entity == 'application' || inputs.entity == 'app' ) 
+      if: ( inputs.component == 'application' || inputs.component == 'app' ) 
       run: |
 
         if ibmcloud ce application get --name ${{ inputs.name }} ; then
