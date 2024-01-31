@@ -24,8 +24,8 @@ inputs:
     required: true
 
 # App, Function or Job Specific inputs
-  entity:
-    description: The type of entity that should be deployed [App, Function, Job]
+  component:
+    description: The type of component that should be deployed [App, Function, Job]
     required: true
 
   name: 

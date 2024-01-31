@@ -14,8 +14,8 @@ This GitHub Action allows you to interact with IBM Cloud Code Engine. Deploy App
 | `name`          | ✅      | -             | The name of the App, Function, or Job.|
 | `runtime`       | ❌ | -             | The runtime used for the Function. Currently supported `nodejs-18` and `python-3.11` see [IBM Code Engine Function Runtimes](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime) for more information.|
 | `build-source`  | ❌       | .             | Path to the directory containing the source code.|
-| `cpu`           | ❌       | -             | CPU value set for your entity [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo)|
-| `memory`        | ❌       | -             | Memory value set for your entity [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo)|
+| `cpu`           | ❌       | -             | CPU value set for your component [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo)|
+| `memory`        | ❌       | -             | Memory value set for your component [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo)|
 
 
 
@@ -48,7 +48,7 @@ jobs:
         resource-group: 'Default'
         region: 'eu-de'
         project: 'MY-PROJECT'
-        entity: 'app'
+        component: 'app'
         name: 'my-app'
         build-source: './'
         cpu: 1
@@ -80,7 +80,7 @@ jobs:
         resource-group: 'Default'
         region: 'eu-de'
         project: 'MY-PROJECT'
-        entity: 'job'
+        component: 'job'
         name: 'my-job'
         build-source: './'
         cpu: 1
@@ -112,7 +112,7 @@ jobs:
         resource-group: 'Default'
         region: 'eu-de'
         project: 'MY-PROJECT'
-        entity: 'fn'
+        component: 'fn'
         runtime: nodejs-18 
         name: 'my-js-fn'
         build-source: './'
@@ -145,7 +145,7 @@ jobs:
         resource-group: 'Default'
         region: 'eu-de'
         project: 'MY-PROJECT'
-        entity: 'fn'
+        component: 'fn'
         runtime: python-3.11
         name: 'my-py-fn'
         build-source: './'
