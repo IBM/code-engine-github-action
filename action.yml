@@ -137,7 +137,7 @@ runs:
     - name: Create or Update Job
       shell: bash
       id: create-job
-      if: inputs.entity == 'job' 
+      if: inputs.component == 'job' 
       run: |
 
         if ibmcloud ce job get --name ${{ inputs.name }} ; then
