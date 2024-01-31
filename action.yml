@@ -46,7 +46,7 @@ inputs:
     required: false
 
   memory:
-    description: Memory configuration set for the entity. If not set default Code Engine values are used.
+    description: Memory configuration set for the component. If not set default Code Engine values are used.
     required: false
 
 # actual action code 
