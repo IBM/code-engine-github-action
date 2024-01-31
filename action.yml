@@ -161,7 +161,7 @@ runs:
                 ibmcloud ce job get --name ${{ inputs.name }}
                 ;;
             *)
-                echo "Wrong Code Engine Entity used!"
+                echo "Wrong Code Engine component used!"
                 echo "Use[ function | func | fn | application | app | job ]"
                 exit 1
                 ;;
