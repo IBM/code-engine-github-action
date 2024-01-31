@@ -85,7 +85,7 @@ runs:
         if ibmcloud ce project select --name "${{ inputs.project }}" || ibmcloud ce project select --id ${{ inputs.project }} ; then
           echo "Project Selected"
         else
-          ibmcloud ce project create --name ${{ inputs.project }}
+          ibmcloud ce project create --name "${{ inputs.project }}"
         fi
 
     # set resources for target
