@@ -150,7 +150,7 @@ runs:
       shell: bash
       if: steps.fn-create.outcome == 'success' || steps.app-create.outcome == 'success' || steps.job-create.outcome == 'success'
       run: |
-        case ${{ inputs.entity }} in
+        case ${{ inputs.component }} in
             function|func|fn)
                 ibmcloud ce fn get --name ${{ inputs.name }}
                 ;;
