@@ -12,16 +12,16 @@ This GitHub Action allows you to interact with IBM Cloud Code Engine. Deploy App
 | `project`       | ✅      | -             | The unique identifier (GUID) or the name that identifies your IBM Cloud Code Engine project. |
 | `component`        | ✅      | -             | The type of component to deploy. allowed values `application`, `app`, `function`, `func`, `fn`, `job` |
 | `name`          | ✅      | -             | The name of the App, Function, or Job.|
+| `build-source`  | ❌       | .             | Path to the directory containing the source code. See the Docs for additional information on how Code Engine builds [Apps, Jobs](https://cloud.ibm.com/docs/codeengine?topic=codeengine-build-config-local) and [Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-create-local)|
+| `cpu`           | ❌       | 1 / 0.5             | CPU value set for your component Default for Apps and Jobs 1 vCPU, 0.5 vCPU for Functions. [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo)|
+| `memory`        | ❌       | 4G / 2G           | Memory value set for your component Default for Apps and Jobs 4 GB, 2GB for Functions. [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo)|
 | `runtime`       | ❌ | -             | The runtime used for the Function. Currently supported `nodejs-18` and `python-3.11` see [IBM Code Engine Function Runtimes](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime) for more information.|
-| `build-source`  | ❌       | .             | Path to the directory containing the source code.|
-| `cpu`           | ❌       | -             | CPU value set for your component [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo)|
-| `memory`        | ❌       | -             | Memory value set for your component [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo)|
 
 
 
 ## Usage and Example
 
-To use this action, add it to your GitHub Actions workflow YAML file also make sure to add your IBM Cloud API Key as GitHub Action Repository Secret. There is a example for deploying an App, Job and Python/Nodejs Function.
+To use this action, add it to your GitHub Actions workflow YAML file also make sure to add your IBM Cloud API Key as GitHub Action Repository Secret. There is a example for deploying an App, Job and Python/Node.js Function.
 
 *Deploy an App: `deploy-app.yml`*: Deploy your app to `Default` resource-group in `eu-de` to the project `MY-PROJECT` with its source code in the root of the repository the name of the app is`my-app`.
 ```yaml
@@ -87,9 +87,9 @@ jobs:
         memory: 4G
 ```
 
-*Deploy a NodeJS Function: `deploy-nodejs-func.yml`*: Deploy your NodeJS Function to `Default` resource-group in `eu-de` to the project `MY-PROJECT` with its source code in the root of the repository the name of the function is`my-js-fn`.
+*Deploy a Node.js Function: `deploy-nodejs-func.yml`*: Deploy your Node.js Function to `Default` resource-group in `eu-de` to the project `MY-PROJECT` with its source code in the root of the repository the name of the function is`my-js-fn`.
 ```yaml
-name: Deploy a NodeJS Function to Code Engine
+name: Deploy a Node.js Function to Code Engine
 
 on:
   push:
