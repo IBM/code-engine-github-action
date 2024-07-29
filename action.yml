@@ -28,28 +28,33 @@ inputs:
     description: The type of component that should be deployed [App, Function, Job]
     required: true
 
-  name: 
+  name:
     description: Name of the App, Function or Job
     required: true
-  
+
   runtime:
     description: Runtime used for the Function only required for function
     required: false
 
   build-source:
-    description: path to the directory containing the source code 
+    description: path to the directory containing the source code
     required: false
     default: .
 
+  build-size:
+    description: The size to use for the build, which determines the amount of resources used. Valid values include small, medium, large, xlarge, and xxlarge.
+    required: false
+    default: medium
+
   cpu:
-    description: CPU configuration set for the component. If not set default Code Engine values are used. 
+    description: CPU configuration set for the component. If not set default Code Engine values are used.
     required: false
 
   memory:
     description: Memory configuration set for the component. If not set default Code Engine values are used.
     required: false
 
-# actual action code 
+# actual action code
 runs:
   using: composite
 
@@ -63,7 +68,7 @@ runs:
       shell: bash
       run: |
         ibmcloud login --apikey ${{ inputs.api-key }} -r ${{ inputs.region }}
-        
+
     - name: Set Resource Group
       shell: bash
       run: |
@@ -81,7 +86,7 @@ runs:
     # If the project doesn`t exist the project is created with the provided Name
     - name: Select Code Engine Project
       shell: bash
-      run: | 
+      run: |
         if ibmcloud ce project select --name "${{ inputs.project }}" || ibmcloud ce project select --id ${{ inputs.project }} ; then
           echo "Project Selected"
         else
@@ -99,7 +104,7 @@ runs:
         else
           echo "cpu=" >> "$GITHUB_OUTPUT"
         fi
-        
+
         # set the memory value
         if [[ "${{ inputs.memory }}" != "" ]] ; then
           echo "memory=--memory ${{ inputs.memory }}" >> "$GITHUB_OUTPUT"
@@ -111,7 +116,7 @@ runs:
     - name: Create or Update Functions
       shell: bash
       id: fn-create
-      if: ( inputs.component == 'function' || inputs.component == 'func' || inputs.component == 'fn' ) 
+      if: ( inputs.component == 'function' || inputs.component == 'func' || inputs.component == 'fn' )
       run: |
 
         if ibmcloud ce fn get --name ${{ inputs.name }} ; then
@@ -124,29 +129,27 @@ runs:
     - name: Create or Update Application
       shell: bash
       id: create-app
-      if: ( inputs.component == 'application' || inputs.component == 'app' ) 
+      if: ( inputs.component == 'application' || inputs.component == 'app' )
       run: |
-
         if ibmcloud ce application get --name ${{ inputs.name }} ; then
-          ibmcloud ce application update --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+          ibmcloud ce application update --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --build-size ${{ inputs.build-size }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
         else
-          ibmcloud ce application create --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+          ibmcloud ce application create --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --build-size ${{ inputs.build-size }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
         fi
 
     # Job Steps
     - name: Create or Update Job
       shell: bash
       id: create-job
-      if: inputs.component == 'job' 
+      if: inputs.component == 'job'
       run: |
-
         if ibmcloud ce job get --name ${{ inputs.name }} ; then
-          ibmcloud ce job update --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+          ibmcloud ce job update --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --build-size ${{ inputs.build-size }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
         else
-          ibmcloud ce job create --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+          ibmcloud ce job create --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --build-size ${{ inputs.build-size }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
         fi
-    
-    - name: Get component 
+
+    - name: Get component
       shell: bash
       if: steps.fn-create.outcome == 'success' || steps.app-create.outcome == 'success' || steps.job-create.outcome == 'success'
       run: |
