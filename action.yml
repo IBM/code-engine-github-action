@@ -50,11 +50,15 @@ inputs:
     required: false
 
   path:
-    description: Path used for the Subscription only required for subscription
+    description: Path used for the Subscription. For example, /events
+    required: false
+
+  extension:
+    description: Extension used for the Subscription. Set CloudEvents extensions to send to the destination. Must be in 'NAME=VALUE' format. This action adds a new CloudEvents extension or overrides an existing CloudEvent attribute. Specify one extension per --extension option; for example, --ext extA=A --ext extB=B.
     required: false
 
   schedule:
-    description: Schedule used for the Subscription only required for subscription. For example, specify '*/2 * * * *' (in string format) for every two minutes
+    description: Schedule used for the Subscription. For example, specify '*/2 * * * *' (in string format) for every two minutes
     required: false
 
   build-source:
@@ -177,9 +181,9 @@ runs:
       if:  ( inputs.component == 'subscription' || inputs.component == 'sub' ) && inputs.subscription-type == 'cron'
       run: |
         if ibmcloud ce sub cron get --name ${{ inputs.name }} ; then
-          ibmcloud ce sub cron update --name ${{ inputs.name }} --destination-type ${{ inputs.destination-type }} --destination ${{ inputs.destination }} --path ${{ inputs.path }} --schedule ${{ inputs.schedule }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+          ibmcloud ce sub cron update --name ${{ inputs.name }} --destination-type ${{ inputs.destination-type }} --destination ${{ inputs.destination }} --path ${{ inputs.path }} --extension ${{ inputs.extension }} --schedule ${{ inputs.schedule }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
         else
-          ibmcloud ce sub cron create --name ${{ inputs.name }} --destination-type ${{ inputs.destination-type }} --destination ${{ inputs.destination }} --path ${{ inputs.path }} --schedule ${{ inputs.schedule }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+          ibmcloud ce sub cron create --name ${{ inputs.name }} --destination-type ${{ inputs.destination-type }} --destination ${{ inputs.destination }} --path ${{ inputs.path }} --extension ${{ inputs.extension }} --schedule ${{ inputs.schedule }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
         fi
 
     - name: Get component
