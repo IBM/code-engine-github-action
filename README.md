@@ -64,7 +64,7 @@ jobs:
 *Deploy a Job: `deploy-job.yml`*: Deploy your Job to `Default` resource-group in `eu-de` to the project `MY-PROJECT` with its source code in the root of the repository the name of the job is`my-job`.
 
 ```yaml
-name: Deploy App to Code Engine
+name: Deploy Job to Code Engine
 
 on:
   push:
@@ -157,6 +157,44 @@ jobs:
         component: 'fn'
         runtime: python-3.11
         name: 'my-py-fn'
+        build-source: './'
+        cpu: 1
+        memory: 4G
+```
+*Deploy a Job: `deploy-job.yml`*: Deploy your Job to `Default` resource-group in `eu-de` to the project `MY-PROJECT` with its source code in the root of the repository the name of the job is`my-job`.
+
+```yaml
+name: Deploy Cron Subscription to Code Engine
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+
+  deploy-job:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Deploy Cron Subscription to Code Engine
+      uses: IBM/code-engine-github-action@v1
+      with:
+        api-key: ${{ secrets.IBM_IAM_API_KEY }}
+        resource-group: 'Default'
+        region: 'eu-de'
+        project: 'MY-PROJECT'
+        component: 'sub'
+        subscription-type: 'cron'
+        destination-type: 'app'
+        destination: 'my-app'
+        path: '/events'
+        extension: 'extA=A'
+        schedule: '*/2 * * * *'
+        name: 'my-cron-sub'
         build-source: './'
         cpu: 1
         memory: 4G
