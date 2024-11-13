@@ -161,7 +161,7 @@ jobs:
         cpu: 1
         memory: 4G
 ```
-*Deploy a Job: `deploy-job.yml`*: Deploy your Job to `Default` resource-group in `eu-de` to the project `MY-PROJECT` with its source code in the root of the repository the name of the job is`my-job`.
+*Deploy a Cron Subscription: `deploy-cron-sub.yml`*: Deploy your Cron Subscription to `Default` resource-group in `eu-de` to the project `MY-PROJECT` with its source code in the root of the repository the name of the job is`my-cron-sub`.
 
 ```yaml
 name: Deploy Cron Subscription to Code Engine
