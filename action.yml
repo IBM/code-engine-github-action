@@ -61,26 +61,12 @@ runs:
   steps:
     # Default steps required
     - name: Install IBM Cloud CLI
-      shell: bash
-      run: curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
-
-    - name: Login to IBM Cloud And target Resouce Groupe and Region
-      shell: bash
-      run: |
-        ibmcloud login --apikey ${{ inputs.api-key }} -r ${{ inputs.region }}
-
-    - name: Set Resource Group
-      shell: bash
-      run: |
-        if [[ "${{ inputs.resource-group }}" != "" ]] ; then
-          ibmcloud target -g ${{ inputs.resource-group }}
-        else
-          ibmcloud target -g $(ibmcloud resource groups --default --output JSON | jq -r '.[0].id')
-        fi
-
-    - name: Install Code Engine Plugin
-      shell: bash
-      run: ibmcloud plugin install code-engine
+      uses: IBM/actions-ibmcloud-cli@v1
+      with:
+        api_key: ${{ inputs.api-key }}
+        region: ${{ inputs.region }}
+        group: ${{ inputs.resource-group }}
+        plugins: code-engine
 
     # Select the project using Name or ID
     # If the project doesn`t exist the project is created with the provided Name
