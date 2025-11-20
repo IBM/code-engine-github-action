@@ -23,23 +23,36 @@ inputs:
     description: A Code Engine Project Is the grouping of your Apps, Functions and Jobs
     required: true
 
-# App, Function or Job Specific inputs
+# App, Function, Job or build Specific inputs
   component:
-    description: The type of component that should be deployed [App, Function, Job]
+    description: The type of component that should be deployed [App, Function, Job, Build]
     required: true
 
   name:
-    description: Name of the App, Function or Job
+    description: Name of the App, Function, Job or build
     required: true
 
   runtime:
     description: Runtime used for the Function only required for function
     required: false
 
+  image:
+    description:  Name of the image that is used for this application
+    required: false
+
+  registry-secret: 
+    description:  Name of the registry secret used to authenticate against the Container registry
+    required: false
+
   build-source:
     description: path to the directory containing the source code
     required: false
     default: .
+
+  build-strategy:
+    description: strategy used for building the image ['dockerfile', 'buildpacks']
+    required: false
+    default: buildpacks
 
   build-size:
     description: The size to use for the build, which determines the amount of resources used. Valid values include small, medium, large, xlarge, and xxlarge.
@@ -90,26 +103,50 @@ runs:
         if ibmcloud ce project select --name "${{ inputs.project }}" || ibmcloud ce project select --id ${{ inputs.project }} ; then
           echo "Project Selected"
         else
-          ibmcloud ce project create --name "${{ inputs.project }}"
+          ibmcloud ce project create --name "${{ inputs.project }}" --wait
         fi
 
     # set resources for target
     - name: Set resources
       id: set-resources
       shell: bash
+      env:
+        CPU: ${{ steps.set-resources.outputs.cpu }} 
+        MEMORY: ${{ steps.set-resources.outputs.memory }}
       run: |
         # set the CPU value
-        if [[ "${{ inputs.cpu }}" != "" ]] ; then
-          echo "cpu=--cpu ${{ inputs.cpu }}" >> "$GITHUB_OUTPUT"
+        if [[ "${CPU}" != "" ]] ; then
+          echo "cpu=--cpu ${CPU}" >> "$GITHUB_OUTPUT"
         else
           echo "cpu=" >> "$GITHUB_OUTPUT"
         fi
 
         # set the memory value
-        if [[ "${{ inputs.memory }}" != "" ]] ; then
-          echo "memory=--memory ${{ inputs.memory }}" >> "$GITHUB_OUTPUT"
+        if [[ "${MEMORY}" != "" ]] ; then
+          echo "memory=--memory ${MEMORY}" >> "$GITHUB_OUTPUT"
         else
           echo "memory=" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: configure-build-image
+      id: conf-build-img
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.image }}
+        REGION: ${{ inputs.region }}
+        REGISTRY_SECRET: ${{ inputs.registry-secret }}
+        BUILD_SOURCE: ${{ inputs.build-source }}
+        BUILD_STRATEGY: ${{ inputs.build-strategy }}
+        BUILD_SIZE: ${{ inputs.build-size }}
+      run: |
+        if [[ "${IMAGE}" != "" ]] ; then
+          if [[ "${REGISTRY_SECRET}" != "" ]]; then 
+            echo "build-img=--image ${IMAGE} --registry-secret ${REGISTRY_SECRET}" >> "$GITHUB_OUTPUT"
+          else 
+            echo "build-img=--image ${IMAGE}" >> "$GITHUB_OUTPUT"
+          fi
+        else 
+          echo "build-img=--build-source ${BUILD_SOURCE} --build-size ${BUILD_SIZE} --build-strategy ${BUILD_STRATEGY}" >> "$GITHUB_OUTPUT"
         fi
 
     # Functions Steps
@@ -117,12 +154,47 @@ runs:
       shell: bash
       id: fn-create
       if: ( inputs.component == 'function' || inputs.component == 'func' || inputs.component == 'fn' )
+      env:
+        NAME: ${{ inputs.name }}
+        RUNTIME: ${{ inputs.runtime }}
+        BUILD_SOURCE: ${{ inputs.build-source }}
+        CPU: ${{ steps.set-resources.outputs.cpu }} 
+        MEMORY: ${{ steps.set-resources.outputs.memory }}
       run: |
 
-        if ibmcloud ce fn get --name ${{ inputs.name }} ; then
-          ibmcloud ce fn update --name ${{ inputs.name }} --runtime ${{ inputs.runtime }} --build-source ${{ inputs.build-source }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+        if ibmcloud ce fn get --name ${NAME} ; then
+          ibmcloud ce fn update --name ${NAME} --runtime ${RUNTIME} --build-source ${BUILD_SOURCE}  ${CPU} ${MEMORY}
         else
-          ibmcloud ce fn create --name ${{ inputs.name }} --runtime ${{ inputs.runtime }} --build-source ${{ inputs.build-source }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+          ibmcloud ce fn create --name ${NAME} --runtime ${RUNTIME} --build-source ${BUILD_SOURCE}  ${CPU} ${MEMORY}
+        fi
+
+    # Build Steps
+    - name: Create or Update build
+      shell: bash
+      id: create-build
+      if: ( inputs.component == 'build')
+      env:
+        NAME: ${{ inputs.name }}
+        IMAGE: ${{ inputs.image }}
+        REGION: ${{ inputs.region }}
+        REGISTRY_SECRET: ${{ inputs.registry-secret }}
+        BUILD_SOURCE: ${{ inputs.build-source }}
+        BUILD_STRATEGY: ${{ inputs.build-strategy }}
+        BUILD_SIZE: ${{ inputs.build-size }}
+      run: |
+        if [[ "${IMAGE}" == "" ]] ; then 
+          echo "image needs to be set for build"
+          exit 1
+        fi
+        NAME=${NAME}-$(date +"%Y%m%d%H%M%S")
+        if ibmcloud ce buildrun get --name ${NAME} ; then
+          echo "buildrun already exists"
+        else
+          if [[ "${REGISTRY_SECRET}" == "" ]] ; then 
+            echo "using default secret for current region: ce-auto-icr-private-${REGION}"
+            REGISTRY_SECRET="ce-auto-icr-private-${REGION}"
+          fi
+          ibmcloud ce buildrun submit --name ${NAME} --source  ${BUILD_SOURCE} --strategy ${BUILD_STRATEGY} --image ${IMAGE} --registry-secret ${REGISTRY_SECRET}  --size ${BUILD_SIZE} --wait 
         fi
 
     # Application Steps
@@ -130,11 +202,16 @@ runs:
       shell: bash
       id: create-app
       if: ( inputs.component == 'application' || inputs.component == 'app' )
+      env:
+        NAME: ${{ inputs.name }}
+        CPU: ${{ steps.set-resources.outputs.cpu }} 
+        MEMORY: ${{ steps.set-resources.outputs.memory }}
+        CONFBUILDIMG: ${{ steps.conf-build-img.outputs.build-img }}
       run: |
-        if ibmcloud ce application get --name ${{ inputs.name }} ; then
-          ibmcloud ce application update --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --build-size ${{ inputs.build-size }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+        if ibmcloud ce application get --name ${NAME} ; then
+          ibmcloud ce application update --name ${NAME} ${CONFBUILDIMG} ${CPU} ${MEMORY}
         else
-          ibmcloud ce application create --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --build-size ${{ inputs.build-size }} ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+          ibmcloud ce application create --name ${NAME} ${CONFBUILDIMG} ${CPU} ${MEMORY}
         fi
 
     # Job Steps
@@ -142,26 +219,33 @@ runs:
       shell: bash
       id: create-job
       if: inputs.component == 'job'
+      env:
+        NAME: ${{ inputs.name }}
+        CPU: ${{ steps.set-resources.outputs.cpu }} 
+        MEMORY: ${{ steps.set-resources.outputs.memory }}
+        CONFBUILDIMG: ${{ steps.conf-build-img.outputs.build-img }}
       run: |
-        if ibmcloud ce job get --name ${{ inputs.name }} ; then
-          ibmcloud ce job update --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --build-size ${{ inputs.build-size }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+        if ibmcloud ce job get --name ${NAME} ; then
+          ibmcloud ce job update --name ${NAME} ${CONFBUILDIMG} --wait ${CPU} ${MEMORY}
         else
-          ibmcloud ce job create --name ${{ inputs.name }} --build-source ${{ inputs.build-source }} --build-size ${{ inputs.build-size }} --wait ${{ steps.set-resources.outputs.cpu }} ${{ steps.set-resources.outputs.memory }}
+          ibmcloud ce job create --name ${NAME} ${CONFBUILDIMG} --wait ${CPU} ${MEMORY}
         fi
 
     - name: Get component
       shell: bash
       if: steps.fn-create.outcome == 'success' || steps.app-create.outcome == 'success' || steps.job-create.outcome == 'success'
+      env:
+        NAME: ${{ inputs.name }}
       run: |
         case ${{ inputs.component }} in
             function|func|fn)
-                ibmcloud ce fn get --name ${{ inputs.name }}
+                ibmcloud ce fn get --name  ${NAME}
                 ;;
             application|app)
-                ibmcloud ce app get --name ${{ inputs.name }}
+                ibmcloud ce app get --name  ${NAME}
                 ;;
             job)
-                ibmcloud ce job get --name ${{ inputs.name }}
+                ibmcloud ce job get --name  ${NAME}
                 ;;
             *)
                 echo "Wrong Code Engine component used!"
