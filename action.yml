@@ -44,6 +44,15 @@ inputs:
     description:  Name of the registry secret used to authenticate against the Container registry
     required: false
 
+  port:
+    description:  Port of the Application 
+    required: false
+  
+  trusted-profiles:
+    description: Enable trusted profiles
+    required: false
+    default: false
+
   build-source:
     description: path to the directory containing the source code
     required: false
@@ -111,8 +120,9 @@ runs:
       id: set-resources
       shell: bash
       env:
-        CPU: ${{ steps.set-resources.outputs.cpu }} 
-        MEMORY: ${{ steps.set-resources.outputs.memory }}
+        CPU: ${{ inputs.cpu }} 
+        MEMORY: ${{ inputs.memory }}
+        TRUSTED-PROFILES: ${{ inputs.trusted-profiles }}
       run: |
         # set the CPU value
         if [[ "${CPU}" != "" ]] ; then
@@ -126,6 +136,12 @@ runs:
           echo "memory=--memory ${MEMORY}" >> "$GITHUB_OUTPUT"
         else
           echo "memory=" >> "$GITHUB_OUTPUT"
+        fi
+
+        if [[ "${TRUSTED-PROFILES}" == "true" ]] ; then
+          echo "trusted-profiles=--trusted-profiles-enabled" >> "$GITHUB_OUTPUT"
+        else 
+          echo "trusted-profiles=" >> "$GITHUB_OUTPUT"
         fi
 
     - name: configure-build-image
@@ -160,12 +176,13 @@ runs:
         BUILD_SOURCE: ${{ inputs.build-source }}
         CPU: ${{ steps.set-resources.outputs.cpu }} 
         MEMORY: ${{ steps.set-resources.outputs.memory }}
+        TRUSTED-PROFILES: ${{ steps.set-resources.outputs.trusted-profiles }}
       run: |
 
         if ibmcloud ce fn get --name ${NAME} ; then
-          ibmcloud ce fn update --name ${NAME} --runtime ${RUNTIME} --build-source ${BUILD_SOURCE}  ${CPU} ${MEMORY}
+          ibmcloud ce fn update --name ${NAME} --runtime ${RUNTIME} --build-source ${BUILD_SOURCE} ${${TRUSTED-PROFILES}} ${CPU} ${MEMORY}
         else
-          ibmcloud ce fn create --name ${NAME} --runtime ${RUNTIME} --build-source ${BUILD_SOURCE}  ${CPU} ${MEMORY}
+          ibmcloud ce fn create --name ${NAME} --runtime ${RUNTIME} --build-source ${BUILD_SOURCE} ${TRUSTED-PROFILES} ${CPU} ${MEMORY}
         fi
 
     # Build Steps
@@ -207,11 +224,18 @@ runs:
         CPU: ${{ steps.set-resources.outputs.cpu }} 
         MEMORY: ${{ steps.set-resources.outputs.memory }}
         CONFBUILDIMG: ${{ steps.conf-build-img.outputs.build-img }}
+        PORT: ${{ inputs.port }}
+        TRUSTED-PROFILES: ${{ steps.set-resources.outputs.trusted-profiles }}
       run: |
+        # set the PORT value
+        PORTFLAG=""
+        if [[ "${PORT}" != "" ]] ; then
+          PORTFLAG="--port ${PORT}"
+        fi
         if ibmcloud ce application get --name ${NAME} ; then
-          ibmcloud ce application update --name ${NAME} ${CONFBUILDIMG} ${CPU} ${MEMORY}
+          ibmcloud ce application update --name ${NAME} ${CONFBUILDIMG} ${PORTFLAG} ${TRUSTED-PROFILES} ${CPU} ${MEMORY}
         else
-          ibmcloud ce application create --name ${NAME} ${CONFBUILDIMG} ${CPU} ${MEMORY}
+          ibmcloud ce application create --name ${NAME} ${CONFBUILDIMG} ${PORTFLAG} ${TRUSTED-PROFILES} ${CPU} ${MEMORY}
         fi
 
     # Job Steps
@@ -224,11 +248,12 @@ runs:
         CPU: ${{ steps.set-resources.outputs.cpu }} 
         MEMORY: ${{ steps.set-resources.outputs.memory }}
         CONFBUILDIMG: ${{ steps.conf-build-img.outputs.build-img }}
+        TRUSTED-PROFILES: ${{ steps.set-resources.outputs.trusted-profiles }}
       run: |
         if ibmcloud ce job get --name ${NAME} ; then
-          ibmcloud ce job update --name ${NAME} ${CONFBUILDIMG} --wait ${CPU} ${MEMORY}
+          ibmcloud ce job update --name ${NAME} ${CONFBUILDIMG} --wait ${TRUSTED-PROFILES} ${CPU} ${MEMORY}
         else
-          ibmcloud ce job create --name ${NAME} ${CONFBUILDIMG} --wait ${CPU} ${MEMORY}
+          ibmcloud ce job create --name ${NAME} ${CONFBUILDIMG} --wait ${TRUSTED-PROFILES} ${CPU} ${MEMORY}
         fi
 
     - name: Get component

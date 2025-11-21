@@ -4,22 +4,24 @@ This GitHub Action allows you to interact with IBM Cloud Code Engine. Deploy App
 
 ## Inputs
 
-| Name             | Required | Default Value    |Description                                                                                                                                                                                                                                                         |
-|------------------|----|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `api-key`        | ✅ | -                           | IAM API Key used to log into the IBM Cloud. Please store your IBM Cloud API key securely in your GitHub repository Secrets. |
-| `resource-group` | ❌ | Your Default Resource Group | An IBM Cloud Resource Group, a logical container for organizing and managing related cloud resources.|
-| `region`         | ✅ | -                           | The geographical area where your Code Engine project is located, like `eu-de` [codeengine-regions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-regions)|
-| `project`        | ✅ | -                           | The unique identifier (GUID) or the name that identifies your IBM Cloud Code Engine project. |
-| `component`      | ✅ | -                           | The type of component to deploy. allowed values `application`, `app`, `function`, `func`, `fn`, `job`, `build` |
-| `name`           | ✅ | -                           | The name of the App, Function, or Job. |
-| `image`          | ❌ | - | Name of the image used for this application or job |
-| `registry-secret`| ❌ | - | Name of the Code Engine registry secret used to authenticate against the Container registry |
-| `build-source`   | ❌ | .                           | Path to the directory containing the source code. See the Docs for additional information on how Code Engine builds [Apps, Jobs](https://cloud.ibm.com/docs/codeengine?topic=codeengine-build-config-local) and [Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-create-local) |
-| `build-strategy` | ❌ | buildpacks | Strategy used for building the image. allowed values `dockerfile`, `buildpacks` |
-| `build-size`     | ❌ | medium                      | The size of the build defines how CPU cores, memory, and disk space are assigned to the build. See the Docs for additional information for [Apps, and Jobs](https://cloud.ibm.com/docs/codeengine?topic=codeengine-plan-build#build-size) |
-| `cpu`            | ❌ | 1 / 0.5                     | CPU value set for your component Default for Apps and Jobs 1 vCPU, 0.5 vCPU for Functions. [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo) |
-| `memory`         | ❌ | 4G / 2G                     | Memory value set for your component Default for Apps and Jobs 4 GB, 2GB for Functions. [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo) |
-| `runtime`        | ❌ | -                           | The runtime used for the Function. Currently supported `nodejs-18` and `python-3.11` see [IBM Code Engine Function Runtimes](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime) for more information. |
+| Name              | Required | Default Value    |Description                                                                                                                                                                                                                                                         |
+|-------------------|----|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `api-key`         | ✅ | -                           | IAM API Key used to log into the IBM Cloud. Please store your IBM Cloud API key securely in your GitHub repository Secrets. |
+| `resource-group`  | ❌ | Your Default Resource Group | An IBM Cloud Resource Group, a logical container for organizing and managing related cloud resources.|
+| `region`          | ✅ | -                           | The geographical area where your Code Engine project is located, like `eu-de` [codeengine-regions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-regions)|
+| `project`         | ✅ | -                           | The unique identifier (GUID) or the name that identifies your IBM Cloud Code Engine project. |
+| `component`       | ✅ | -                           | The type of component to deploy. allowed values `application`, `app`, `function`, `func`, `fn`, `job`, `build` |
+| `name`            | ✅ | -                           | The name of the App, Function, or Job. |
+| `image`           | ❌ | -                           | Name of the image used for this application or job |
+| `port`            | ❌ | -                           | Container port of the application |
+| `trusted-profiles`| ❌ | false                       | Enable trusted profiles for `application`, `function` or `job` |
+| `registry-secret` | ❌ | -                           | Name of the Code Engine registry secret used to authenticate against the Container registry |
+| `build-source`    | ❌ | .                           | Path to the directory containing the source code. See the Docs for additional information on how Code Engine builds [Apps, Jobs](https://cloud.ibm.com/docs/codeengine?topic=codeengine-build-config-local) and [Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-create-local) |
+| `build-strategy`  | ❌ | buildpacks | Strategy used for building the image. allowed values `dockerfile`, `buildpacks` |
+| `build-size`      | ❌ | medium                      | The size of the build defines how CPU cores, memory, and disk space are assigned to the build. See the Docs for additional information for [Apps, and Jobs](https://cloud.ibm.com/docs/codeengine?topic=codeengine-plan-build#build-size) |
+| `cpu`             | ❌ | 1 / 0.5                     | CPU value set for your component Default for Apps and Jobs 1 vCPU, 0.5 vCPU for Functions. [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo) |
+| `memory`          | ❌ | 4G / 2G                     | Memory value set for your component Default for Apps and Jobs 4 GB, 2GB for Functions. [Config for Functions](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime), [Codeengine Memory CPU combo](https://cloud.ibm.com/docs/codeengine?topic=codeengine-mem-cpu-combo) |
+| `runtime`         | ❌ | -                           | The runtime used for the Function. Currently supported `nodejs-18` and `python-3.11` see [IBM Code Engine Function Runtimes](https://cloud.ibm.com/docs/codeengine?topic=codeengine-fun-runtime) for more information. |
 
 ## Usage and Example
 
