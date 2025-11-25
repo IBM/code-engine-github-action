@@ -248,6 +248,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Build and push to ICR
+      id: build-step
       uses: IBM/code-engine-github-action@v1
       with:
         api-key: ${{ secrets.IBM_IAM_API_KEY }}
@@ -259,4 +260,7 @@ jobs:
         image: private.de.icr.io/my-namespace/my-image:latest
         registry-secret: ce-auto-icr-private-eu-de
         build-source: './'
+    - name: Get image with digest
+      run: | 
+        echo "Image with digest: ${{ steps.build-step.outputs.image-with-digest }}"
 ```

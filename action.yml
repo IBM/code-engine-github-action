@@ -76,6 +76,11 @@ inputs:
     description: Memory configuration set for the component. If not set default Code Engine values are used.
     required: false
 
+outputs:  
+  image-with-digest:    
+    description: "The built image with digest"
+    value: ${{ steps.create-build.outputs.image-with-digest }}
+    
 # actual action code
 runs:
   using: composite
@@ -166,7 +171,7 @@ runs:
       run: |
 
         if ibmcloud ce fn get --name ${NAME} ; then
-          ibmcloud ce fn update --name ${NAME} --runtime ${RUNTIME} --build-source ${BUILD_SOURCE} ${${TRUSTED_PROFILES}} ${CPU} ${MEMORY}
+          ibmcloud ce fn update --name ${NAME} --runtime ${RUNTIME} --build-source ${BUILD_SOURCE} ${TRUSTED_PROFILES} ${CPU} ${MEMORY}
         else
           ibmcloud ce fn create --name ${NAME} --runtime ${RUNTIME} --build-source ${BUILD_SOURCE} ${TRUSTED_PROFILES} ${CPU} ${MEMORY}
         fi
@@ -200,8 +205,9 @@ runs:
           ibmcloud ce buildrun submit --name ${NAME} --source  ${BUILD_SOURCE} --strategy ${BUILD_STRATEGY} --image ${IMAGE} --registry-secret ${REGISTRY_SECRET}  --size ${BUILD_SIZE} --wait 
         fi
         BUILDRUNDATA=$(ibmcloud ce buildrun get --name ${NAME} --output json)
-        echo "Output image with digest: $(echo ${BUILDRUNDATA} | jq -r '.output_image' )@$(echo ${BUILDRUNDATA} | jq -r '.status_details.output_digest')" 
-
+        IMAGE_WITH_DIGEST="$(echo ${BUILDRUNDATA} | jq -r '.output_image')@$(echo ${BUILDRUNDATA} | jq -r '.status_details.output_digest')"
+        echo "Output image with digest: ${IMAGE_WITH_DIGEST}"
+        echo "image-with-digest=${IMAGE_WITH_DIGEST}" >> $GITHUB_OUTPUT 
 
     # Application Steps
     - name: Create or Update Application
