@@ -99,11 +99,13 @@ runs:
     # If the project doesn`t exist the project is created with the provided Name
     - name: Select Code Engine Project
       shell: bash
+      env:
+        PROJECT: ${{ inputs.project }}
       run: |
-        if ibmcloud ce project select --name "${{ inputs.project }}" || ibmcloud ce project select --id ${{ inputs.project }} ; then
+        if ibmcloud ce project select --name "${PROJECT}" || ibmcloud ce project select --id ${PROJECT} ; then
           echo "Project Selected"
         else
-          ibmcloud ce project create --name "${{ inputs.project }}" --wait
+          ibmcloud ce project create --name "${PROJECT}" --wait
         fi
 
     # set resources for target
@@ -256,8 +258,9 @@ runs:
       if: steps.fn-create.outcome == 'success' || steps.app-create.outcome == 'success' || steps.job-create.outcome == 'success'
       env:
         NAME: ${{ inputs.name }}
+        COMPONENT: ${{ inputs.component }}
       run: |
-        case ${{ inputs.component }} in
+        case ${COMPONENT} in
             function|func|fn)
                 ibmcloud ce fn get --name  ${NAME}
                 ;;
